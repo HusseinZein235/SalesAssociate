@@ -182,6 +182,8 @@ class MainViewModel(
                     lastSale = sale,
                     showSaleConfirmation = true
                 )
+                // Reload products to reflect updated amounts
+                loadProducts()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }

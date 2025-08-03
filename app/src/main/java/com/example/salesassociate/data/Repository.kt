@@ -18,6 +18,9 @@ class Repository(
     // Product operations
     suspend fun loadProductsFromExcel(filePath: String): Result<List<Product>> = withContext(Dispatchers.IO) {
         try {
+            // Clear existing products to ignore sample data
+            database.productDao().deleteAllProducts()
+            
             val products = excelReader.readProductsFromExcel(filePath)
             database.productDao().insertProducts(products)
             Result.success(products)
@@ -32,10 +35,8 @@ class Repository(
             // Load sample data if database is empty
             val sampleProducts = SampleData.getSampleProducts()
             database.productDao().insertProducts(sampleProducts)
-            println("DEBUG: Loaded sample products with expiry dates: ${sampleProducts.map { "${it.item}: ${it.expiryDate}" }}")
             sampleProducts
         } else {
-            println("DEBUG: Loaded products from database with expiry dates: ${products.map { "${it.item}: ${it.expiryDate}" }}")
             products
         }
     }

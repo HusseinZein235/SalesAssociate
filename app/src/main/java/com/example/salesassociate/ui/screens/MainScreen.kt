@@ -297,13 +297,13 @@ fun ProductCard(
             )
             
             Text(
-                text = "Price: $${product.costPerUnit}",
+                text = "Price: $${String.format("%.2f", product.costPerUnit)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary
             )
             
             Text(
-                text = "Expires: ${product.expiryDate?.toString() ?: "No expiry date"} (Debug: ${product.expiryDate})",
+                text = "Expires: ${product.expiryDate?.toString() ?: "No expiry date"}",
                 style = MaterialTheme.typography.bodySmall,
                 color = if (product.expiryDate != null && product.expiryDate < Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date) {
                     Color.Red

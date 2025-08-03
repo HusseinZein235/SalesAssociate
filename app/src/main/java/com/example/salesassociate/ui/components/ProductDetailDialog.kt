@@ -76,7 +76,7 @@ fun ProductDetailDialog(
                     ProductDetailRow("Units", product.units)
                     ProductDetailRow("Category", product.category)
                     ProductDetailRow("Amount", "${product.amount} ${product.units}")
-                    ProductDetailRow("Cost per Unit", "$${product.costPerUnit}")
+                    ProductDetailRow("Cost per Unit", "$${String.format("%.2f", product.costPerUnit)}")
                     ProductDetailRow("Expiry Date", product.expiryDate?.toString() ?: "No expiry date")
                     ProductDetailRow("Barcode", product.barcode)
                     
@@ -89,7 +89,7 @@ fun ProductDetailDialog(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        ProductDetailRow("Wholesale Price", "$${product.wholesalePrice}")
+                        ProductDetailRow("Wholesale Price", "$${String.format("%.2f", product.wholesalePrice)}")
                         
                         // Editable Notes
                         Row(

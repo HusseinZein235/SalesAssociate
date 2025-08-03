@@ -23,6 +23,9 @@ import androidx.navigation.navArgument
 import androidx.room.Room
 import com.example.salesassociate.data.AppDatabase
 import com.example.salesassociate.data.Repository
+import com.example.salesassociate.utils.ExcelReader
+import com.example.salesassociate.utils.ExcelWriter
+import com.example.salesassociate.utils.FileManager
 import com.example.salesassociate.ui.screens.*
 import com.example.salesassociate.ui.components.PurchaseListDialog
 import com.example.salesassociate.ui.theme.SalesAssociateTheme
@@ -40,8 +43,13 @@ class MainActivity : ComponentActivity() {
             "sales_associate_db_v3" // Changed database name to force recreation
         ).fallbackToDestructiveMigration().build()
         
+        // Initialize utilities
+        val excelReader = ExcelReader(applicationContext)
+        val excelWriter = ExcelWriter(applicationContext)
+        val fileManager = FileManager(applicationContext)
+        
         // Initialize repository
-        val repository = Repository(database, applicationContext)
+        val repository = Repository(database, excelReader, excelWriter, fileManager)
         
         setContent {
             SalesAssociateTheme {

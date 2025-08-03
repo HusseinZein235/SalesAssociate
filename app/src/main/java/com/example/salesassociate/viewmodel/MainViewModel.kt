@@ -176,15 +176,26 @@ class MainViewModel(
         
         viewModelScope.launch {
             try {
+                println("DEBUG: Starting sale confirmation for customer: ${currentCustomer.name}")
+                println("DEBUG: Current purchase list: ${currentCustomer.currentPurchaseList}")
+                
                 val sale = repository.confirmSale(currentCustomer)
+                println("DEBUG: Sale confirmed successfully: ${sale.id}")
+                
                 _currentCustomer.value = currentCustomer.copy(currentPurchaseList = emptyList())
                 _uiState.value = _uiState.value.copy(
                     lastSale = sale,
                     showSaleConfirmation = true
                 )
+                
+                println("DEBUG: Reloading products to reflect updated amounts")
                 // Reload products to reflect updated amounts
                 loadProducts()
+                
+                println("DEBUG: Sale confirmation completed successfully")
             } catch (e: Exception) {
+                println("DEBUG: Error during sale confirmation: ${e.message}")
+                e.printStackTrace()
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
@@ -280,6 +291,27 @@ class MainViewModel(
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun testExcelUpdate() {
+        viewModelScope.launch {
+            try {
+                println("DEBUG: Testing Excel update manually")
+                // Force an Excel update by updating a product
+                val products = repository.getAllProducts()
+                if (products.isNotEmpty()) {
+                    val firstProduct = products.first()
+                    println("DEBUG: Updating product: ${firstProduct.item}")
+                    repository.updateProduct(firstProduct)
+                    println("DEBUG: Manual Excel update test completed")
+                } else {
+                    println("DEBUG: No products found for testing")
+                }
+            } catch (e: Exception) {
+                println("DEBUG: Error during manual Excel update test: ${e.message}")
+                e.printStackTrace()
             }
         }
     }

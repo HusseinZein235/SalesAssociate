@@ -135,10 +135,31 @@ The app stores all data locally on the device:
 - Sample data is automatically loaded if no Excel file is uploaded
 - Excel data replaces sample data when uploaded
 
+### Excel File Synchronization
+The app now automatically updates your Excel file when changes are made:
+
+#### What Gets Updated:
+1. **Product Amounts**: When you confirm a sale, the product quantities are automatically reduced in your Excel file
+2. **Product Notes**: When you edit notes in admin mode, changes are saved back to the Excel file
+3. **Expiry Dates**: Any changes to expiry dates are reflected in the Excel file
+
+#### How It Works:
+1. **Upload Excel**: First, upload your Excel file through the Settings screen
+2. **Make Changes**: Use the app normally - make sales, edit notes, etc.
+3. **Automatic Sync**: The app automatically updates your Excel file in the background
+4. **File Location**: Updated Excel file is stored in the app's internal storage
+
+#### Important Notes:
+- The Excel file must be uploaded through the app's Settings screen for synchronization to work
+- Only the uploaded Excel file is updated - other Excel files on your device remain unchanged
+- The app maintains the original Excel structure and formatting
+- All updates are performed safely with error handling
+
 ### Backup and Restore
 - Currently, data is stored locally only
 - To backup: Export your Excel file and photos folder
 - To restore: Re-upload the Excel file and photos folder
+- **Excel Updates**: Your Excel file is automatically kept up-to-date with all app changes
 
 ## 🎯 Key Features
 
@@ -147,6 +168,7 @@ The app stores all data locally on the device:
 - Automatic quantity updates after sales
 - Out-of-stock indicators
 - Expiry date monitoring
+- **Excel File Synchronization**: Automatically updates your Excel file when inventory changes
 
 ### Customer Management
 - Add, edit, and delete customers
@@ -165,6 +187,13 @@ The app stores all data locally on the device:
 - Editable product notes
 - Stock management
 - Sales analytics
+
+### Excel File Integration
+- **Automatic Updates**: When you make a sale, the app automatically updates your Excel file
+- **Notes Editing**: Changes to product notes in admin mode are saved back to Excel
+- **Inventory Sync**: Product amounts are updated in Excel when sales are confirmed
+- **Date Formatting**: Expiry dates are properly formatted in Excel
+- **Real-time Sync**: All changes are immediately reflected in your Excel file
 
 ## 🔍 Debug Information
 

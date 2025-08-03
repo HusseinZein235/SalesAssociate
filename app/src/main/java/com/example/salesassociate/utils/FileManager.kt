@@ -53,6 +53,7 @@ class FileManager(private val context: Context) {
     
     fun saveFileFromUri(uri: Uri, type: String): String {
         return try {
+            println("DEBUG: Saving file from URI: $uri, type: $type")
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
             val fileName = "uploaded_${type}_${System.currentTimeMillis()}.${getFileExtension(uri)}"
             val directory = when (type) {
@@ -62,14 +63,18 @@ class FileManager(private val context: Context) {
             }
             val file = File(directory, fileName)
             
+            println("DEBUG: Saving file to: ${file.absolutePath}")
+            
             inputStream?.use { input ->
                 FileOutputStream(file).use { output ->
                     input.copyTo(output)
                 }
             }
             
+            println("DEBUG: File saved successfully: ${file.absolutePath}")
             file.absolutePath
         } catch (e: Exception) {
+            println("DEBUG: Error saving file: ${e.message}")
             throw Exception("Failed to save file: ${e.message}")
         }
     }
@@ -179,7 +184,16 @@ class FileManager(private val context: Context) {
     
     fun getExcelFiles(): List<File> {
         val excelDir = getExcelDirectory()
-        return excelDir.listFiles()?.filter { it.extension.lowercase() in listOf("xlsx", "xls") } ?: emptyList()
+        println("DEBUG: Excel directory: ${excelDir.absolutePath}")
+        println("DEBUG: Excel directory exists: ${excelDir.exists()}")
+        
+        val allFiles = excelDir.listFiles() ?: emptyArray()
+        println("DEBUG: All files in Excel directory: ${allFiles.map { it.name }}")
+        
+        val excelFiles = allFiles.filter { it.extension.lowercase() in listOf("xlsx", "xls") }
+        println("DEBUG: Excel files found: ${excelFiles.map { it.name }}")
+        
+        return excelFiles
     }
     
     fun getPhotoFiles(): List<File> {

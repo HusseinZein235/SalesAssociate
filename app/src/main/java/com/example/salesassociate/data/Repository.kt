@@ -1,7 +1,7 @@
 package com.example.salesassociate.data
 
-import android.content.Context
 import com.example.salesassociate.utils.ExcelReader
+import com.example.salesassociate.utils.ExcelWriter
 import com.example.salesassociate.utils.FileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,11 +12,10 @@ import kotlinx.datetime.toLocalDateTime
 
 class Repository(
     private val database: AppDatabase,
-    private val context: Context
+    private val excelReader: ExcelReader,
+    private val excelWriter: ExcelWriter,
+    private val fileManager: FileManager
 ) {
-    private val excelReader = ExcelReader(context)
-    private val fileManager = FileManager(context)
-    
     // Product operations
     suspend fun loadProductsFromExcel(filePath: String): Result<List<Product>> = withContext(Dispatchers.IO) {
         try {
@@ -78,6 +77,37 @@ class Repository(
     
     suspend fun updateProduct(product: Product) = withContext(Dispatchers.IO) {
         database.productDao().updateProduct(product)
+        
+        // Update Excel file
+        updateExcelFile()
+    }
+    
+    private suspend fun updateExcelFile() = withContext(Dispatchers.IO) {
+        try {
+            println("DEBUG: Starting Excel file update process")
+            val excelFilePath = excelWriter.getCurrentExcelFilePath()
+            println("DEBUG: Excel file path: $excelFilePath")
+            
+            if (excelFilePath != null) {
+                println("DEBUG: Found Excel file, getting all products from database")
+                val allProducts = database.productDao().getAllProducts()
+                println("DEBUG: Retrieved ${allProducts.size} products from database")
+                
+                println("DEBUG: Calling ExcelWriter to update file")
+                val success = excelWriter.updateExcelFile(excelFilePath, allProducts)
+                
+                if (success) {
+                    println("DEBUG: Excel file updated successfully")
+                } else {
+                    println("DEBUG: Failed to update Excel file")
+                }
+            } else {
+                println("DEBUG: No Excel file found to update")
+            }
+        } catch (e: Exception) {
+            println("DEBUG: Error updating Excel file: ${e.message}")
+            e.printStackTrace()
+        }
     }
     
     suspend fun getProductByName(itemName: String): Product? = withContext(Dispatchers.IO) {
@@ -264,6 +294,9 @@ class Repository(
         
         // Update daily stats
         updateDailyStats(confirmedSale)
+        
+        // Update Excel file with new inventory levels
+        updateExcelFile()
         
         return confirmedSale
     }

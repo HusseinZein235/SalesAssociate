@@ -196,6 +196,32 @@ class MainViewModel(
         _uiState.value = _uiState.value.copy(showSaleConfirmation = false)
     }
     
+    fun loadDailyStats(date: LocalDate) {
+        viewModelScope.launch {
+            try {
+                val stats = repository.getDailyStats(date)
+                val sales = repository.getSalesByDate(date)
+                _uiState.value = _uiState.value.copy(
+                    dailyStats = stats,
+                    salesForDate = sales
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+    
+    fun updateProduct(product: Product) {
+        viewModelScope.launch {
+            try {
+                repository.updateProduct(product)
+                loadProducts() // Reload products to reflect changes
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+    
     // Customer management
     fun addCustomer(name: String, note: String?, place: String, pharmacyName: String) {
         viewModelScope.launch {
@@ -263,5 +289,7 @@ data class MainUiState(
     val customers: List<Customer> = emptyList(),
     val currentCustomerName: String = "",
     val lastSale: Sale? = null,
-    val showSaleConfirmation: Boolean = false
+    val showSaleConfirmation: Boolean = false,
+    val dailyStats: DailyStats? = null,
+    val salesForDate: List<Sale>? = null
 ) 

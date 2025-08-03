@@ -153,6 +153,9 @@ fun MainScreen(
                 selectedProduct = null
                 showAdminMode = false
                 selectedAmount = 1
+            },
+            onUpdateProduct = { updatedProduct ->
+                viewModel.updateProduct(updatedProduct)
             }
         )
     }
@@ -290,7 +293,7 @@ fun ProductCard(
             Text(
                 text = "Amount: ${product.amount} ${product.units}",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (product.amount <= 0) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Text(
@@ -300,14 +303,23 @@ fun ProductCard(
             )
             
             Text(
-                text = "Expires: ${product.expiryDate}",
+                text = "Expires: ${product.expiryDate?.toString() ?: "No expiry date"} (Debug: ${product.expiryDate})",
                 style = MaterialTheme.typography.bodySmall,
-                color = if (product.expiryDate < Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date) {
+                color = if (product.expiryDate != null && product.expiryDate < Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date) {
                     Color.Red
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
+            
+            if (product.amount <= 0) {
+                Text(
+                    text = "OUT OF STOCK",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 } 

@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
         val database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "sales_associate_db"
+            "sales_associate_db_v3" // Changed database name to force recreation
         ).fallbackToDestructiveMigration().build()
         
         // Initialize repository

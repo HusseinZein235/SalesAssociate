@@ -50,10 +50,16 @@ class FileManager(private val context: Context) {
         }
     }
     
-    fun savePhotoFile(uri: Uri, fileName: String): File? {
+    fun saveFileFromUri(uri: Uri, type: String): String {
         return try {
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            val file = File(getPhotosDirectory(), fileName)
+            val fileName = "uploaded_${type}_${System.currentTimeMillis()}.${getFileExtension(uri)}"
+            val directory = when (type) {
+                "excel" -> getExcelDirectory()
+                "photos" -> getPhotosDirectory()
+                else -> getAppDirectory()
+            }
+            val file = File(directory, fileName)
             
             inputStream?.use { input ->
                 FileOutputStream(file).use { output ->
@@ -61,10 +67,40 @@ class FileManager(private val context: Context) {
                 }
             }
             
-            file
+            file.absolutePath
         } catch (e: Exception) {
-            e.printStackTrace()
-            null
+            throw Exception("Failed to save file: ${e.message}")
+        }
+    }
+    
+    fun saveFolderFromUri(uri: Uri, type: String): String {
+        return try {
+            // For folder upload, we'll create a reference file
+            val fileName = "folder_reference_${type}_${System.currentTimeMillis()}.txt"
+            val directory = when (type) {
+                "photos" -> getPhotosDirectory()
+                else -> getAppDirectory()
+            }
+            val file = File(directory, fileName)
+            
+            // Write the URI as a reference
+            file.writeText(uri.toString())
+            
+            file.absolutePath
+        } catch (e: Exception) {
+            throw Exception("Failed to save folder reference: ${e.message}")
+        }
+    }
+    
+    private fun getFileExtension(uri: Uri): String {
+        val mimeType = context.contentResolver.getType(uri)
+        return when (mimeType) {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> "xlsx"
+            "application/vnd.ms-excel" -> "xls"
+            "image/jpeg" -> "jpg"
+            "image/png" -> "png"
+            "image/gif" -> "gif"
+            else -> "bin"
         }
     }
     

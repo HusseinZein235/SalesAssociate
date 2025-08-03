@@ -32,8 +32,10 @@ class Repository(
             // Load sample data if database is empty
             val sampleProducts = SampleData.getSampleProducts()
             database.productDao().insertProducts(sampleProducts)
+            println("DEBUG: Loaded sample products with expiry dates: ${sampleProducts.map { "${it.item}: ${it.expiryDate}" }}")
             sampleProducts
         } else {
+            println("DEBUG: Loaded products from database with expiry dates: ${products.map { "${it.item}: ${it.expiryDate}" }}")
             products
         }
     }
@@ -48,6 +50,10 @@ class Repository(
     
     suspend fun updateProduct(product: Product) = withContext(Dispatchers.IO) {
         database.productDao().updateProduct(product)
+    }
+    
+    suspend fun getProductByName(itemName: String): Product? = withContext(Dispatchers.IO) {
+        database.productDao().getProductByName(itemName)
     }
     
     // Customer operations
@@ -99,17 +105,25 @@ class Repository(
         database.dailyStatsDao().getDailyStats(date)
     }
     
+    suspend fun getSalesByDate(date: LocalDate): List<Sale> = withContext(Dispatchers.IO) {
+        database.saleDao().getSalesByDate(date)
+    }
+    
     suspend fun updateDailyStats(sale: Sale) = withContext(Dispatchers.IO) {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val currentStats = database.dailyStatsDao().getDailyStats(today)
         
+        val itemCount = sale.items.sumOf { it.currentSaleAmount }
+        
         val updatedStats = currentStats?.copy(
             totalSales = currentStats.totalSales + sale.totalAmount,
-            customerCount = currentStats.customerCount + 1
+            customerCount = currentStats.customerCount + 1,
+            itemCount = currentStats.itemCount + itemCount
         ) ?: DailyStats(
             date = today,
             totalSales = sale.totalAmount,
-            customerCount = 1
+            customerCount = 1,
+            itemCount = itemCount
         )
         
         database.dailyStatsDao().insertDailyStats(updatedStats)
@@ -125,8 +139,15 @@ class Repository(
         product: Product,
         amount: Int
     ): Customer {
+        // Check if amount exceeds available stock
         val currentList = customer.currentPurchaseList.toMutableList()
         val existingItem = currentList.find { it.item == product.item }
+        val currentAmountInCart = existingItem?.currentSaleAmount ?: 0
+        val totalRequested = currentAmountInCart + amount
+        
+        if (totalRequested > product.amount) {
+            throw IllegalArgumentException("Cannot add ${amount} units. Only ${product.amount - currentAmountInCart} units available.")
+        }
         
         if (existingItem != null) {
             val index = currentList.indexOf(existingItem)
@@ -164,11 +185,20 @@ class Repository(
         productItem: String,
         newAmount: Int
     ): Customer {
+        val product = getProductByName(productItem)
+        if (product == null) {
+            throw IllegalArgumentException("Product not found: $productItem")
+        }
+        
+        if (newAmount > product.amount) {
+            throw IllegalArgumentException("Cannot set amount to ${newAmount}. Only ${product.amount} units available.")
+        }
+        
         val currentList = customer.currentPurchaseList.map { item ->
             if (item.item == productItem) {
                 item.copy(
                     currentSaleAmount = newAmount,
-                    totalCost = newAmount * (getProductByName(productItem)?.costPerUnit ?: 0.0)
+                    totalCost = newAmount * product.costPerUnit
                 )
             } else {
                 item
@@ -182,6 +212,8 @@ class Repository(
     suspend fun confirmSale(customer: Customer): Sale {
         val sale = Sale(
             customerId = customer.id,
+            customerName = customer.name,
+            customerPharmacyName = customer.pharmacyName,
             items = customer.currentPurchaseList,
             totalAmount = customer.currentPurchaseList.sumOf { it.totalCost },
             date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -206,9 +238,5 @@ class Repository(
         updateDailyStats(confirmedSale)
         
         return confirmedSale
-    }
-    
-    private suspend fun getProductByName(itemName: String): Product? {
-        return getAllProducts().find { it.item == itemName }
     }
 } 

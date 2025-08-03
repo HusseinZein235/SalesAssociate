@@ -14,7 +14,7 @@ data class Product(
     val costPerUnit: Double,
     val wholesalePrice: Double,
     val notes: String,
-    val expiryDate: LocalDate,
+    val expiryDate: LocalDate?, // Made nullable
     val barcode: String,
     val address: String // Photo file path
 )
@@ -40,6 +40,8 @@ data class PurchaseItem(
 data class Sale(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val customerId: Int,
+    val customerName: String = "", // Added for display purposes
+    val customerPharmacyName: String = "", // Added for display purposes
     val items: List<PurchaseItem>,
     val totalAmount: Double,
     val date: LocalDate,
@@ -50,5 +52,6 @@ data class Sale(
 data class DailyStats(
     @PrimaryKey val date: LocalDate,
     val totalSales: Double,
-    val customerCount: Int
+    val customerCount: Int,
+    val itemCount: Int = 0 // Added for item count tracking
 ) 

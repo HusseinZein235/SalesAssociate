@@ -17,9 +17,11 @@ import com.example.salesassociate.viewmodel.MainViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
+import com.example.salesassociate.data.Sale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,8 +29,19 @@ fun StatsScreen(
     viewModel: MainViewModel,
     onNavigateBack: () -> Unit
 ) {
-    var selectedDate by remember { mutableStateOf(LocalDate.parse("2024-01-01")) }
+    var selectedDate by remember { 
+        mutableStateOf(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date) 
+    }
     var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+    
+    // Load stats for selected date
+    LaunchedEffect(selectedDate) {
+        viewModel.loadDailyStats(selectedDate)
+    }
+    
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dailyStats = uiState.dailyStats
     
     Scaffold(
         topBar = {
@@ -98,9 +111,9 @@ fun StatsScreen(
                 item {
                     DailyStatsCard(
                         date = selectedDate,
-                        totalSales = 0.0, // This would come from the database
-                        customerCount = 0, // This would come from the database
-                        itemCount = 0 // This would come from the database
+                        totalSales = dailyStats?.totalSales ?: 0.0,
+                        customerCount = dailyStats?.customerCount ?: 0,
+                        itemCount = dailyStats?.itemCount ?: 0
                     )
                 }
                 
@@ -112,19 +125,19 @@ fun StatsScreen(
                     )
                 }
                 
-                // This would be populated with actual sales data
-                items(emptyList<DailyStats>()) { stats ->
-                    SalesHistoryCard(stats = stats)
+                // Show sales for the selected date
+                items(uiState.salesForDate ?: emptyList()) { sale ->
+                    SalesHistoryCard(sale = sale)
                 }
                 
-                if (emptyList<DailyStats>().isEmpty()) {
+                if ((uiState.salesForDate ?: emptyList()).isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No sales data available for this date",
+                                text = "No sales data available for ${selectedDate}",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -140,7 +153,15 @@ fun StatsScreen(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val newDate = LocalDate.fromEpochDays((millis / (24 * 60 * 60 * 1000)).toInt())
+                            selectedDate = newDate
+                        }
+                        showDatePicker = false
+                    }
+                ) {
                     Text("OK")
                 }
             },
@@ -151,9 +172,7 @@ fun StatsScreen(
             }
         ) {
             DatePicker(
-                state = rememberDatePickerState(
-                    initialSelectedDateMillis = System.currentTimeMillis()
-                ),
+                state = datePickerState,
                 showModeToggle = false
             )
         }
@@ -244,7 +263,7 @@ fun StatItem(
 
 @Composable
 fun SalesHistoryCard(
-    stats: DailyStats
+    sale: Sale
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -260,17 +279,27 @@ fun SalesHistoryCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = stats.date.toString(),
+                    text = "Sale #${sale.id}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Total Sales: $${String.format("%.2f", stats.totalSales)}",
+                    text = "Customer: ${sale.customerPharmacyName.ifEmpty { sale.customerName }}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Customers: ${stats.customerCount}",
+                    text = "Total: $${String.format("%.2f", sale.totalAmount)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Items: ${sale.items.sumOf { it.currentSaleAmount }}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Date: ${sale.date}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -1,13 +1,15 @@
 package com.example.salesassociate.data
 
 import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.datetime.LocalDate
 
 @Database(
     entities = [Product::class, Customer::class, Sale::class, DailyStats::class],
-    version = 1
+    version = 3,
+    exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -31,7 +33,7 @@ class Converters {
             try {
                 LocalDate.parse(it)
             } catch (e: Exception) {
-                LocalDate.parse("2025-12-31") // Default date if parsing fails
+                null // Return null instead of default date
             }
         }
     }
@@ -78,6 +80,9 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE item LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%'")
     suspend fun searchProducts(query: String): List<Product>
     
+    @Query("SELECT * FROM products WHERE item = :itemName")
+    suspend fun getProductByName(itemName: String): Product?
+    
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: Product)
     
@@ -116,6 +121,9 @@ interface SaleDao {
     
     @Query("SELECT * FROM sales WHERE customerId = :customerId")
     suspend fun getSalesByCustomer(customerId: Int): List<Sale>
+    
+    @Query("SELECT * FROM sales WHERE date = :date ORDER BY timestamp DESC")
+    suspend fun getSalesByDate(date: LocalDate): List<Sale>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSale(sale: Sale): Long

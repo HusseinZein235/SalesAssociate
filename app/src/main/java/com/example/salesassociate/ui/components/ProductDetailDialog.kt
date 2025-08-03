@@ -32,8 +32,12 @@ fun ProductDetailDialog(
     onDismiss: () -> Unit,
     onToggleAdminMode: () -> Unit,
     onAmountChange: (Int) -> Unit,
-    onAddToPurchaseList: () -> Unit
+    onAddToPurchaseList: () -> Unit,
+    onUpdateProduct: ((Product) -> Unit)? = null
 ) {
+    var editedNotes by remember { mutableStateOf(product.notes) }
+    var showNotesDialog by remember { mutableStateOf(false) }
+    
     if (isVisible) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -73,7 +77,7 @@ fun ProductDetailDialog(
                     ProductDetailRow("Category", product.category)
                     ProductDetailRow("Amount", "${product.amount} ${product.units}")
                     ProductDetailRow("Cost per Unit", "$${product.costPerUnit}")
-                    ProductDetailRow("Expiry Date", product.expiryDate.toString())
+                    ProductDetailRow("Expiry Date", product.expiryDate?.toString() ?: "No expiry date")
                     ProductDetailRow("Barcode", product.barcode)
                     
                     // Admin mode details
@@ -86,7 +90,32 @@ fun ProductDetailDialog(
                             color = MaterialTheme.colorScheme.primary
                         )
                         ProductDetailRow("Wholesale Price", "$${product.wholesalePrice}")
-                        ProductDetailRow("Notes", product.notes)
+                        
+                        // Editable Notes
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Notes:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(0.4f)
+                            )
+                            Text(
+                                text = editedNotes,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(0.5f)
+                            )
+                            IconButton(
+                                onClick = { showNotesDialog = true },
+                                modifier = Modifier.weight(0.1f)
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit Notes")
+                            }
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -124,8 +153,17 @@ fun ProductDetailDialog(
                     Text(
                         text = "Available: ${product.amount} ${product.units}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (product.amount <= 0) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    
+                    if (product.amount <= 0) {
+                        Text(
+                            text = "Out of stock!",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Red,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -146,16 +184,49 @@ fun ProductDetailDialog(
                     // Add to Purchase List
                     Button(
                         onClick = onAddToPurchaseList,
-                        enabled = selectedAmount > 0 && selectedAmount <= product.amount
+                        enabled = selectedAmount > 0 && selectedAmount <= product.amount && product.amount > 0
                     ) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = null)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Add to Cart")
+                        Text(if (product.amount <= 0) "Out of Stock" else "Add to Cart")
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+    
+    // Notes Edit Dialog
+    if (showNotesDialog) {
+        AlertDialog(
+            onDismissRequest = { showNotesDialog = false },
+            title = { Text("Edit Notes") },
+            text = {
+                OutlinedTextField(
+                    value = editedNotes,
+                    onValueChange = { editedNotes = it },
+                    label = { Text("Notes") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onUpdateProduct?.invoke(product.copy(notes = editedNotes))
+                        showNotesDialog = false
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotesDialog = false }) {
                     Text("Cancel")
                 }
             }

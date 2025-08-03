@@ -32,11 +32,11 @@ class ExcelReader(private val context: Context) {
                         description = getCellValue(row.getCell(1)) ?: "",
                         units = getCellValue(row.getCell(2)) ?: "",
                         category = getCellValue(row.getCell(3)) ?: "",
-                        amount = getCellValue(row.getCell(4))?.toIntOrNull() ?: 0,
-                        costPerUnit = getCellValue(row.getCell(5))?.toDoubleOrNull() ?: 0.0,
-                        wholesalePrice = getCellValue(row.getCell(6))?.toDoubleOrNull() ?: 0.0,
+                        amount = getCellValueAsInt(row.getCell(4)), // Fixed amount reading
+                        costPerUnit = getCellValueAsDouble(row.getCell(5)) ?: 0.0,
+                        wholesalePrice = getCellValueAsDouble(row.getCell(6)) ?: 0.0,
                         notes = getCellValue(row.getCell(7)) ?: "",
-                        expiryDate = parseDate(getCellValue(row.getCell(8))),
+                        expiryDate = parseDate(getCellValue(row.getCell(8))), // Now nullable
                         barcode = getCellValue(row.getCell(9)) ?: "",
                         address = getCellValue(row.getCell(10)) ?: ""
                     )
@@ -69,9 +69,27 @@ class ExcelReader(private val context: Context) {
         }
     }
     
-    private fun parseDate(dateString: String?): LocalDate {
+    // New method to properly read integer values
+    private fun getCellValueAsInt(cell: org.apache.poi.ss.usermodel.Cell?): Int {
+        return when (cell?.cellType) {
+            org.apache.poi.ss.usermodel.CellType.NUMERIC -> cell.numericCellValue.toInt()
+            org.apache.poi.ss.usermodel.CellType.STRING -> cell.stringCellValue.toIntOrNull() ?: 0
+            else -> 0
+        }
+    }
+    
+    // New method to properly read double values
+    private fun getCellValueAsDouble(cell: org.apache.poi.ss.usermodel.Cell?): Double? {
+        return when (cell?.cellType) {
+            org.apache.poi.ss.usermodel.CellType.NUMERIC -> cell.numericCellValue
+            org.apache.poi.ss.usermodel.CellType.STRING -> cell.stringCellValue.toDoubleOrNull()
+            else -> null
+        }
+    }
+    
+    private fun parseDate(dateString: String?): LocalDate? { // Made nullable
         if (dateString.isNullOrEmpty()) {
-            return LocalDate.parse("2025-12-31") // Default expiry date
+            return null // Return null instead of default date
         }
         
         return try {
@@ -86,10 +104,10 @@ class ExcelReader(private val context: Context) {
                     val parts = dateString.split("-")
                     LocalDate(parts[2].toInt(), parts[1].toInt(), parts[0].toInt())
                 }
-                else -> LocalDate.parse("2025-12-31")
+                else -> null // Return null if format not recognized
             }
         } catch (e: Exception) {
-            LocalDate.parse("2025-12-31")
+            null // Return null on parsing error
         }
     }
 } 

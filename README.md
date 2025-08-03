@@ -1,190 +1,191 @@
-# Sales Associate Android App
+# Sales Associate App
 
-A comprehensive Android application for managing sales, inventory, and customer relationships. Built with Jetpack Compose and Room database.
+A comprehensive Android application for managing product sales and inventory using Excel data and product photos.
 
-## Features
+## 🚀 Quick Start Guide
 
-### 📊 Product Management
-- **Excel Integration**: Load product data from Excel files stored on the device
-- **Photo Support**: Display product images from a photos folder
-- **Grid Layout**: Products displayed in a 2-column grid organized by categories
-- **Search Functionality**: Search products by name, description, or category
-- **Product Details**: View detailed product information with admin mode for wholesale prices and notes
+### 1. Running the App
+1. Open Android Studio
+2. Open the project folder: `SalesAssociate`
+3. Wait for Gradle sync to complete
+4. Start an Android emulator (API 35 or higher)
+5. Click the "Run" button (green play icon) or press `Shift + F10`
+6. The app will install and launch on the emulator
 
-### 👥 Customer Management
-- **Customer Database**: Add, edit, and delete customers
-- **Customer Selection**: Set current customer for sales transactions
-- **Customer Information**: Store customer name, pharmacy name, place, and notes
+### 2. Initial Setup - Adding Your Data
 
-### 🛒 Sales Management
-- **Purchase List**: Add items to customer's current purchase list
-- **Quantity Control**: Adjust quantities with validation against available stock
-- **Bill Management**: View and edit current bill with total calculations
-- **Sale Confirmation**: Complete sales and update inventory automatically
+#### Excel File Requirements:
+- **File Name**: Any name with `.xlsx` or `.xls` extension (e.g., `products.xlsx`)
+- **Required Columns** (in this exact order):
+  1. **Item** - Product name
+  2. **Description** - Product description
+  3. **Units** - Unit of measurement (e.g., pieces, kg, etc.)
+  4. **Category** - Product category
+  5. **Amount** - Available quantity (must be a number)
+  6. **CostPerUnit** - Price per unit (must be a number)
+  7. **WholesalePrice** - Wholesale price (must be a number)
+  8. **Notes** - Additional notes (optional)
+  9. **ExpiryDate** - Expiry date (format: MM/YYYY, DD/MM/YYYY, or YYYY-MM-DD)
+  10. **Barcode** - Product barcode
+  11. **Address** - Photo filename (e.g., `product1.jpg`)
 
-### 📈 Statistics & Reporting
-- **Daily Statistics**: Track daily sales totals and customer counts
-- **Date Filtering**: Filter statistics by specific dates
-- **Sales History**: View historical sales data
+#### Photos Folder Requirements:
+- **Folder Name**: Any name (e.g., `product_photos`)
+- **Photo Files**: Must match the filenames in the Excel "Address" column
+- **Supported Formats**: JPG, JPEG, PNG, GIF
 
-### 💾 Data Persistence
-- **Room Database**: Local SQLite database for all data
-- **Excel Import**: Read product data from Excel files
-- **Photo Management**: Store and display product photos
+### 3. How to Add Your Data
 
-## Technical Architecture
+#### Step 1: Access Settings
+1. Open the app
+2. Click the **Settings** button (gear icon) in the top-right corner
 
-### Data Models
-- **Product**: Item details, pricing, inventory, photos
-- **Customer**: Customer information and purchase history
-- **Sale**: Transaction records with items and totals
-- **DailyStats**: Daily sales statistics
+#### Step 2: Upload Excel File
+1. In Settings, click **"Upload Excel File"**
+2. Navigate to your Excel file
+3. Select and upload it
+4. Wait for the upload confirmation
 
-### Key Components
-- **Repository Pattern**: Centralized data access layer
-- **ViewModel**: UI state management with coroutines
-- **Room Database**: Local data persistence
-- **Jetpack Compose**: Modern UI framework
-- **Navigation**: Screen navigation with NavHost
+#### Step 3: Upload Photos Folder
+1. In Settings, click **"Upload Photos Folder"**
+2. Navigate to your photos folder
+3. Select the entire folder
+4. Wait for the upload confirmation
+5. The app will automatically copy all photos to internal storage
 
-### Dependencies
-- **Apache POI**: Excel file reading
-- **Coil**: Image loading and caching
-- **Room**: Database ORM
-- **Navigation Compose**: Screen navigation
-- **Material 3**: Modern UI components
+#### Step 4: Verify Data
+1. Go back to the main screen
+2. You should see your products displayed in a grid
+3. Each product should show its photo, name, amount, price, and expiry date
 
-## Usage Instructions
+## 📱 App Usage Flow
 
-### 1. Initial Setup
-1. Place your Excel file in the app's Excel directory
-2. Add product photos to the photos directory
-3. The Excel file should have columns: Item, Description, Units, Category, Amount, CostPerUnit, WholesalePrice, Notes, ExpiryDate, Barcode, Address
+### Main Screen (Page 0)
+- **Product Grid**: Shows all products grouped by category in a 2-column layout
+- **Search Bar**: Search for products by name or description
+- **Customer Button**: Shows current customer name or "Customers"
+- **Stats Button**: View daily sales statistics
+- **Cart Button**: View current purchase list
 
-### 2. Loading Data
-1. Navigate to Settings (gear icon in top bar)
-2. Upload your Excel file
-3. Add product photos
-4. Return to main screen to see products
+### Product Details (Window 1)
+- **Tap any product** to open detailed view
+- **Product Info**: Shows item, description, units, category, amount, cost, expiry date, barcode
+- **Admin Button**: Reveals wholesale price and notes, makes fields editable
+- **Add to Cart**: Add product to current customer's purchase list
 
-### 3. Managing Customers
-1. Click the Customers button (shows current customer name)
-2. Add new customers with required information
-3. Select a customer as current customer
-4. The customer name will appear on the main button
+### Customer Management (Page 1)
+- **Add Customers**: Create new customers with name, pharmacy name, place, notes
+- **Select Customer**: Choose current customer for purchases
+- **Edit/Delete**: Manage existing customers
+- **Back Button**: Return to main screen
 
-### 4. Making Sales
-1. Browse products in the main grid
-2. Click on a product to view details
-3. Select quantity and add to cart
-4. Click the Cart button to view purchase list
-5. Edit quantities or remove items as needed
-6. Confirm sale to complete transaction
+### Purchase List (Window 2)
+- **View Items**: See all items in current purchase list
+- **Edit Quantities**: Modify amounts for each item
+- **Total Calculation**: Automatic price calculation
+- **Confirm Sale**: Process the sale and update inventory
+- **Reset**: Clear the current purchase list
 
-### 5. Viewing Statistics
-1. Click the Stats button
-2. View daily sales statistics
-3. Filter by specific dates
-4. Track total sales and customer counts
+### Statistics (Page 2)
+- **Daily Stats**: View total sales, customer count, and item count
+- **Sales History**: See detailed sales with customer information
+- **Date Filter**: Filter statistics by specific date
+- **Back Button**: Return to main screen
 
-## File Structure
+## 🔧 Troubleshooting
 
-```
-app/src/main/java/com/example/salesassociate/
-├── data/
-│   ├── Models.kt          # Data classes and entities
-│   ├── Database.kt        # Room database and DAOs
-│   └── Repository.kt      # Data access layer
-├── ui/
-│   ├── screens/           # Screen components
-│   └── components/        # Reusable UI components
-├── utils/
-│   ├── ExcelReader.kt     # Excel file processing
-│   └── FileManager.kt     # File management utilities
-├── viewmodel/
-│   └── MainViewModel.kt   # UI state management
-└── MainActivity.kt        # App entry point
-```
+### App Not Appearing on Emulator
+1. **Check Build**: Ensure the build completed successfully (no red errors)
+2. **Restart Emulator**: Close and restart the Android emulator
+3. **Clean Build**: In Android Studio, go to `Build → Clean Project`, then `Build → Rebuild Project`
+4. **Check Logcat**: Look for error messages in the Logcat window
 
-## Database Schema
+### Excel Data Not Loading
+1. **Check File Format**: Ensure Excel file has `.xlsx` or `.xls` extension
+2. **Verify Column Order**: Columns must be in the exact order specified above
+3. **Check Data Types**: Amount and price columns must contain numbers
+4. **View Debug Logs**: Check Logcat for detailed error messages
 
-### Products Table
-- `item` (Primary Key): Product name
-- `description`: Product description
-- `units`: Unit of measurement
-- `category`: Product category
-- `amount`: Available quantity
-- `costPerUnit`: Unit price
-- `wholesalePrice`: Wholesale price
-- `notes`: Additional notes
-- `expiryDate`: Expiration date
-- `barcode`: Product barcode
-- `address`: Photo file path
+### Photos Not Displaying
+1. **Check Filenames**: Photo filenames must exactly match the "Address" column in Excel
+2. **Verify Upload**: Ensure photos folder was uploaded successfully
+3. **Check Formats**: Only JPG, JPEG, PNG, GIF files are supported
+4. **Restart App**: Close and reopen the app after uploading photos
 
-### Customers Table
-- `id` (Primary Key): Auto-generated ID
-- `name`: Customer name
-- `note`: Optional notes
-- `place`: Customer location
-- `pharmacyName`: Pharmacy name
-- `currentPurchaseList`: JSON array of current items
-- `purchaseHistory`: JSON array of past sales
+### Expiry Dates Not Showing
+1. **Check Date Format**: Use MM/YYYY, DD/MM/YYYY, or YYYY-MM-DD format
+2. **Verify Column**: Ensure "ExpiryDate" column exists and is in the correct position
+3. **Check Data**: Ensure date cells are not empty or contain invalid data
 
-### Sales Table
-- `id` (Primary Key): Auto-generated ID
-- `customerId`: Reference to customer
-- `items`: JSON array of sold items
-- `totalAmount`: Total sale amount
-- `date`: Sale date
-- `timestamp`: Sale timestamp
+### Purchase Issues
+1. **Check Stock**: Ensure product has sufficient quantity
+2. **Select Customer**: Make sure a customer is selected before adding items
+3. **Verify Amounts**: Purchase amounts cannot exceed available stock
 
-### DailyStats Table
-- `date` (Primary Key): Date
-- `totalSales`: Total sales for the day
-- `customerCount`: Number of customers for the day
+## 📊 Data Management
 
-## Development Notes
-
-### Excel File Format
-The app expects Excel files with the following column structure:
-1. Item (Product name)
-2. Description
-3. Units
-4. Category
-5. Amount (Available quantity)
-6. CostPerUnit
-7. WholesalePrice
-8. Notes
-9. ExpiryDate
-10. Barcode
-11. Address (Photo file path)
-
-### Photo Management
-- Photos should be stored in the app's photos directory
-- Photo file paths in Excel should match the actual file names
-- Supported formats: JPG, JPEG, PNG, GIF
+### Database Location
+The app stores all data locally on the device:
+- **Database**: `sales_associate_db_v3` (SQLite)
+- **Files**: Stored in app's internal storage
+- **Photos**: Copied to app's internal photos directory
 
 ### Data Persistence
-- All data is stored locally using Room database
-- Excel files and photos are stored in app-specific directories
-- Data persists between app sessions
+- All data persists between app sessions
+- Sample data is automatically loaded if no Excel file is uploaded
+- Excel data replaces sample data when uploaded
 
-## Building and Running
+### Backup and Restore
+- Currently, data is stored locally only
+- To backup: Export your Excel file and photos folder
+- To restore: Re-upload the Excel file and photos folder
 
-1. Open the project in Android Studio
-2. Sync Gradle dependencies
-3. Build the project
-4. Run on an Android device or emulator (API 35+)
+## 🎯 Key Features
 
-## Requirements
+### Inventory Management
+- Real-time stock tracking
+- Automatic quantity updates after sales
+- Out-of-stock indicators
+- Expiry date monitoring
 
-- Android API 35+ (Android 15.0)
-- Kotlin DSL build system
-- Jetpack Compose UI
-- Room database
-- Apache POI for Excel reading
-- Coil for image loading
+### Customer Management
+- Add, edit, and delete customers
+- Track customer purchase history
+- Pharmacy name display
+- Customer-specific purchase lists
 
-## License
+### Sales Tracking
+- Daily sales statistics
+- Customer-specific sales history
+- Item-level sales tracking
+- Automatic total calculations
 
-This project is developed for educational and commercial use. 
+### Admin Features
+- Wholesale price access
+- Editable product notes
+- Stock management
+- Sales analytics
+
+## 🔍 Debug Information
+
+The app includes extensive debug logging to help troubleshoot issues:
+- Excel file reading process
+- Photo path resolution
+- Database operations
+- Sales processing
+
+To view debug logs:
+1. Open Android Studio
+2. Go to `View → Tool Windows → Logcat`
+3. Filter by your app package: `com.example.salesassociate`
+4. Look for "DEBUG:" messages
+
+## 📞 Support
+
+If you encounter issues:
+1. Check the debug logs in Logcat
+2. Verify your Excel file format and data
+3. Ensure photos are properly uploaded
+4. Restart the app and try again
+
+The app is designed to be robust and user-friendly, with comprehensive error handling and detailed logging to help identify and resolve any issues quickly. 

@@ -2,6 +2,7 @@ package com.example.salesassociate.data
 
 import android.content.Context
 import com.example.salesassociate.utils.ExcelReader
+import com.example.salesassociate.utils.FileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -14,17 +15,43 @@ class Repository(
     private val context: Context
 ) {
     private val excelReader = ExcelReader(context)
+    private val fileManager = FileManager(context)
     
     // Product operations
     suspend fun loadProductsFromExcel(filePath: String): Result<List<Product>> = withContext(Dispatchers.IO) {
         try {
+            println("DEBUG: Starting Excel file load from: $filePath")
+            
             // Clear existing products to ignore sample data
             database.productDao().deleteAllProducts()
+            println("DEBUG: Cleared existing products from database")
             
             val products = excelReader.readProductsFromExcel(filePath)
-            database.productDao().insertProducts(products)
-            Result.success(products)
+            println("DEBUG: Read ${products.size} products from Excel")
+            
+            // Process image paths to combine with photos folder
+            val processedProducts = products.map { product ->
+                println("DEBUG: Processing product: ${product.item}")
+                println("DEBUG: Original address: ${product.address}")
+                println("DEBUG: Original expiry date: ${product.expiryDate}")
+                
+                val fullImagePath = fileManager.getFullImagePath(product.address)
+                println("DEBUG: Full image path: $fullImagePath")
+                
+                val processedProduct = product.copy(address = fullImagePath)
+                println("DEBUG: Final product - Item: ${processedProduct.item}, Expiry: ${processedProduct.expiryDate}, Image: ${processedProduct.address}")
+                
+                processedProduct
+            }
+            
+            println("DEBUG: Inserting ${processedProducts.size} processed products into database")
+            database.productDao().insertProducts(processedProducts)
+            println("DEBUG: Successfully inserted products into database")
+            
+            Result.success(processedProducts)
         } catch (e: Exception) {
+            println("DEBUG: Error loading Excel file: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

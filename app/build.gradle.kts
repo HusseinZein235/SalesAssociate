@@ -92,6 +92,9 @@ dependencies {
     // JSON serialization
     implementation("com.google.code.gson:gson:2.10.1")
     
+    // DocumentFile for folder access
+    implementation("androidx.documentfile:documentfile:1.0.1")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
